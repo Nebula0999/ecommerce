@@ -2,8 +2,6 @@ from django.shortcuts import render
 from requests import Response
 from rest_framework.generics import CreateAPIView
 from rest_framework.views import APIView
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from api.serializers import ProductSerializer
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework import filters, status
@@ -17,21 +15,17 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters import FilterSet
 
 class CustomPagination(PageNumberPagination):
-    page_size = 50  
-
-class PermissionMixin(UserPassesTestMixin):
-    def test_func(self):
-        return self.request.user.is_authenticated
+    page_size = 50  # Custom pagination to display upto 50 products per page
 
 def ProductsFilter(FilterSet):
     class Meta:
         model = Products
-        fields = ['id', 'name']  
+        fields = ['id', 'name']  # filter products by id and name
 
-class ProductListView(ListView):
+class ProductListView(ReadOnlyModelViewSet): # read only view for products
     queryset = Products.objects.all()
     serializer_class = ProductSerializer
-    pagination_class = CustomPagination
+    pagination_class = CustomPagination # pagination for the products
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['products', 'category']
@@ -40,22 +34,22 @@ class ProductListView(ListView):
        # Get the filtered queryset
        queryset = self.filter_queryset(self.get_queryset())
 
-       page = self.paginate_queryset(queryset)
+       page = self.paginate_queryset(queryset) # paginate the queryset
        if page is not None:
            serializer = self.get_serializer(page, many=True)
            return self.get_paginated_response(serializer.data)
 
-class ProductViewSet(DetailView):
+class ProductViewSet(ModelViewSet): # view for products that allows CRUD operations
     queryset = Products.objects.all()
     serializer_class = ProductSerializer
-    pagination_class = CustomPagination
-    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination # pagination for the products
+    permission_classes = [IsAuthenticated] # only authenticated users can perform CRUD operations
 
     def get(self, request, format=None):
         content = {
             'status': 'request was permitted'
         }
-        return Response(content)
+        return Response(content) # return response if request is permitted
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['products', 'category']
@@ -65,82 +59,58 @@ class ProductViewSet(DetailView):
        queryset = self.filter_queryset(self.get_queryset())
 
        page = self.paginate_queryset(queryset)
-       if page is not None:
+       if page is not None: 
            serializer = self.get_serializer(page, many=True)
-           return self.get_paginated_response(serializer.data)
-       
-class ProductCreateView(PermissionMixin, CreateAPIView):
-    model = Products
-    fields = '__all__'
+           return self.get_paginated_response(serializer.data) # return paginated response
 
-    def form_valid(self, form):
-        form.instance.creator = self.request.user
-        return super().form_valid(form)
-class ProductUpdateView(PermissionMixin, UpdateView):
-    model = Products
-    fields = '__all__'
-    
-    def form_valid(self, form):
-        form.instance.creator = self.request.user
-        return super().form_valid(form)
-
-   
-class ProductDeleteView(PermissionMixin, DeleteView):
-    model = Products
-    success_url = '/products/'
-
-    def test_func(self):
-        product = self.get_object()
-        return self.request.user == product.creator
-
-class CategoryViewSet(ModelViewSet):
+class CategoryViewSet(ModelViewSet): # view for categories that allows CRUD operations
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-
-class OrderViewSet(ModelViewSet):
+    
+class OrderViewSet(ModelViewSet): # view for orders that allows CRUD operations
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # only authenticated users can perform CRUD operations
 
     def get(self, request, format=None):
         content = {
             'status': 'request was permitted'
         }
-        return Response(content)
+        return Response(content) # return response if request is permitted
 
     
-class UserViewSet(ReadOnlyModelViewSet):
+class UserViewSet(ReadOnlyModelViewSet): # read only view for users
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # only authenticated users can view users
 
     def get(self, request, format=None):
         content = {
             'status': 'request was permitted'
         }
-        return Response(content)
+        return Response(content) # return response if request is permitted
     
-class OrderItemView(ModelViewSet):
+class OrderItemView(ModelViewSet): # view for order items that allows CRUD operations
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # only authenticated users can perform CRUD operations
 
     def get(self, request, format=None):
         content = {
             'status': 'request was permitted'
         }
-        return Response(content)
+        return Response(content) # return response if request is permitted
 
-class ProductReviewSet(ModelViewSet):
+class ProductReviewSet(ModelViewSet): # view for product reviews that allows CRUD operations
     queryset = ProductReview.objects.all()
     serializer_class = ProductReviewSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # only authenticated users can perform CRUD operations
 
     def get(self, request, format=None):
         content = {
             'status': 'request was permitted'
         }
-        return Response(content)
+        return Response(content) # return response if request is permitted
         
 
 # Create your views here.
