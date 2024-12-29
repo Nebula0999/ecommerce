@@ -14,10 +14,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from django_filters import FilterSet
 
-class CustomPagination(PageNumberPagination):
+class CustomPagination(PageNumberPagination): # Custom pagination class
     page_size = 50  # Custom pagination to display upto 50 products per page
 
-def ProductsFilter(FilterSet):
+def ProductsFilter(FilterSet): # Filter class for products
     class Meta:
         model = Products
         fields = ['id', 'name']  # filter products by id and name
